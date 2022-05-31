@@ -1,0 +1,117 @@
+import pygame
+import random
+
+x = 0
+y = 0
+
+point = 0
+
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+
+pygame.init()
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode([500, 500])
+
+food_pos = random.randint(1, 400)
+hurt_pos = random.randint(1, 400)
+food_list = []
+hurt_list = []
+time_interval = 10
+seconds = 100
+end = "You Lose"
+win = "You Win"
+
+next_food_time = pygame.time.get_ticks()
+next_hurt_time = pygame.time.get_ticks()
+
+done = False
+while not done:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            done = True
+
+    screen.fill((0, 0, 0))
+    seconds -= .01
+    print(seconds)
+    pygame.draw.rect(screen, WHITE, pygame.Rect(x, y, 30, 30))
+    pygame.display.set_caption("Collect the balls to win!")
+
+    font = pygame.font.Font(None, 74)
+    text = font.render(str(point), True, WHITE)
+    screen.blit(text, (250, 10))
+
+    font = pygame.font.Font(None, 40)
+    text = font.render(str(seconds), True, WHITE)
+    screen.blit(text, (50, 10))
+
+    pressed = pygame.key.get_pressed()
+
+#Movement System
+    if pressed[pygame.K_UP]:
+        y -= 2
+    if pressed[pygame.K_DOWN]:
+        y += 2
+    if pressed[pygame.K_LEFT]:
+        x -= 2
+    if pressed[pygame.K_RIGHT]:
+        x += 2
+
+#Border system
+    if x <= -1:
+        x = 0
+    if x >= 471:
+        x = 470
+    if y <= -1:
+        y = 0
+    if y >= 471:
+        y = 470
+
+    player_rect = pygame.Rect(x, y, 30, 30)
+
+#Collision detection
+    for hurt_pos in hurt_list[:]:
+        hurt_rect = pygame.Rect(0, 0, 10, 10)
+        hurt_rect.center = hurt_pos
+        if player_rect.colliderect(hurt_rect):
+            hurt_list.remove(hurt_pos)
+            point -= 1
+
+    for food_pos in food_list[:]:
+        food_rect = pygame.Rect(0, 0, 10, 10)
+        food_rect.center = food_pos
+        if player_rect.colliderect(food_rect):
+            food_list.remove(food_pos)
+            point += 1
+#Loss system/Win system
+    if point == 10:
+        font = pygame.font.Font(None, 40)
+        text = font.render(str(win), True, WHITE)
+        screen.blit(text, (200, 200))
+    if seconds <= 0:
+        font = pygame.font.Font(None, 40)
+        text = font.render(str(end), True, RED)
+        screen.blit(text, (200, 200))
+    if point == -1:
+        font = pygame.font.Font(None, 40)
+        text = font.render(str(end), True, RED)
+        screen.blit(text, (200, 200))
+
+
+    current_time = pygame.time.get_ticks()
+    if current_time > next_food_time and len(food_list) < 6:
+        next_food_time += time_interval
+        food_list.append((random.randint(1, 400), random.randint(1, 400)))
+
+    if current_time > next_hurt_time and len(hurt_list) < 10:
+        next_hurt_time += time_interval
+        hurt_list.append((random.randint(1, 400), random.randint(1, 400)))
+
+    for hurt_pos in hurt_list:
+        pygame.draw.circle(screen, RED, hurt_pos, 5)
+
+    for food_pos in food_list:
+        pygame.draw.circle(screen, WHITE, food_pos, 5)
+
+    pygame.display.flip()
+    clock.tick(144)
